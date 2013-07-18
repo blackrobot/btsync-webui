@@ -37,9 +37,12 @@ table table {
   cursor: pointer;
 }
 
+.btn-toolbar .btn-inverse i {
+  margin: 3px 0 0 2px;
+}
 .btn-toolbar .btn.removeButton {
   height: auto;
-  padding: 4px 7px;
+  padding: 6px 7px 2px;
   width: auto;
 }
 
