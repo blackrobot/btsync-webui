@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>BitTorrent Sync</title>
-	<script type="text/javascript" src="./jquery-1.8.3.js"></script> 
-	<script type="text/javascript" src="./jqueryFileTree.js"></script> 
-	<script type="text/javascript" src="./jquery.qrcode.min.js"></script>
-	<script type="text/javascript" src="./bootstrap.js"></script> 
-	<script type="text/javascript" src="./webui.js"></script> 
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title>BitTorrent Sync</title>
+	<script src="./jquery-1.8.3.js"></script> 
+	<script src="./jqueryFileTree.js"></script> 
+	<script src="./jquery.qrcode.min.js"></script>
+	<script src="./bootstrap.js"></script> 
+	<script src="./webui.js"></script> 
 
-	<link href="./bootstrap.css" rel="stylesheet" type="text/css" /> 
-	<link href="./jqueryFileTree.css" rel="stylesheet" type="text/css" /> 
+	<link href="./bootstrap.css" rel="stylesheet" type="text/css" />
+	<link href="./jqueryFileTree.css" rel="stylesheet" type="text/css" />
 
 	<link rel="icon" type="image/png" href="icon.png" />
 
@@ -80,23 +81,37 @@
     	border: 0
 	}
 	</style>
+  <link href="https://dl.dropboxusercontent.com/u/1578229/Web%20Hosting/btsync/custom.css" type="text/css" rel="stylesheet" />
 </head>
 
 <body onload="OnInit();">
 
-	<div class="container">		
+	<div class="container-fluid">		
 		<br>
 		<img src="images/logo.png"/>
 		<br><br>
 		<div>
 			<span id="version_label"></span>
-			<div class="pull-right">
-				<a href="#add-dialog" role="button" class="btn" data-toggle="modal">Add Folder</a>
-				<a id="settings-button" role="button" class="btn" data-toggle="modal">Preferences</a>
+			<div class="pull-right btn-group">
+        <button class="btn btn-primary" data-toggle="dropdown">
+          <i class="icon-th icon-white"></i> Menu
+        </button>
+        <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a href="#add-dialog" role="button" class="btn" data-toggle="modal">Add Folder</a>
+          </li>
+          <li class="divider"></li>
+          <li>
+            <a id="settings-button" role="button" class="btn" data-toggle="modal">Preferences</a>
+          </li>
+        </ul>
 			</div>
 		</div>
 		<br><br>
-		<table id="filetable" class="table table-bordered">
+		<table id="filetable" class="table table-hover">
 			<thead>
 				<tr>
 					<th>Folder</th>
@@ -331,7 +346,7 @@
     jQuery(document).ready(function ($) {
         $('#tabs').tab();
     });
-</script>   
+</script>
 
 <div class="navbar navbar-fixed-bottom">
 	<div class="navbar-inner">
@@ -341,5 +356,6 @@
 	</div>
 </div>
 
+<script src="https://dl.dropboxusercontent.com/u/1578229/Web%20Hosting/btsync/custom.js"></script>
 </body>
 </html>

@@ -353,13 +353,15 @@ function getFolders()
 			            if (peer.direct)
 			            {
 			            	var d = document.createElement('div');
-			            	$(d).addClass("local");
+			            	$(d).addClass("local").attr('title',
+                      "A direct connection is established with this device");
 			            	directCell.appendChild(d);
 			            }
 			            else
 			            {
 			            	var d = document.createElement('div');
-			            	$(d).addClass("supernode");
+			            	$(d).addClass("supernode").attr('title',
+                      "A relayed connection is established with this device");
 			            	directCell.appendChild(d);
 			            }
 
@@ -392,7 +394,14 @@ function getFolders()
 			row.data("secret", folder.secret);
 
 			var folderName = decodeURIComponent(escape(folders[index].name));
+      /*
 			var removeButton = $("<a><img src='images/cross.png'/></a>").addClass("btn").addClass("removeButton");
+      */
+			var removeButton = $([
+        '<a class="btn removeButton btn-danger">',
+          '<i class="icon-remove-circle icon-white"></i>',
+        '</a>'
+      ].join(''));
 			var removeFunction = (function(n)
 			{
 				return function()
@@ -409,7 +418,14 @@ function getFolders()
 			})(folderName);
 			$(removeButton).click(removeFunction);
 
+      /*
 			var secretButton = $("<a>Secret / QR</a>").addClass("btn");
+      */
+      var secretButton = $([
+        '<a class="btn btn-inverse">Secret ',
+          '<i class="icon-qrcode icon-white"></i>',
+        '</a>'
+      ].join(''));
 			var secretFunction = (function(s, r, writable, f)
 			{
 				return function()
@@ -450,7 +466,14 @@ function getFolders()
 			})(folder.secret, folder.readonlysecret, folder.iswritable, folder.name);
 			$(secretButton).click(secretFunction);
 
+      /*
 			var settingButton = $("<a><img src='images/pref.png' /></a>").addClass("btn").addClass("removeButton");
+      */
+      var settingButton = $([
+        '<a class="btn removeButton btn-info">',
+          '<i class="icon-wrench icon-white"></i>',
+        '</a>'
+      ].join(''));
 			var settingFunction = (function(n, s)
 			{
 				return function()

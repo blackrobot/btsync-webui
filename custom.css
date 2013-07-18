@@ -1,0 +1,48 @@
+@import url("https://dl.dropboxusercontent.com/u/1578229/Web%20Hosting/btsync/glyphicons.css");
+@import url("http://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700|Open+Sans:400,700");
+
+body {
+  font-family: 'Open Sans', sans-serif !important;
+}
+code,
+pre,
+#filetable > tbody > tr > td:first-child {
+  font-family: 'Ubuntu Mono', monospace !important;
+}
+
+table table {
+  width: 100%;
+}
+
+.table td {
+  vertical-align: middle;
+}
+.table table td {
+  border: 0;
+}
+.table table td:nth-child(2) {
+  font-weight: bold;
+}
+.table table td:last-child {
+  color: #999;
+  font-size: 95%;
+  text-align: right;
+}
+#filetable > tbody > tr > td:first-child {
+  color: #333;
+  font-size: 15px;
+}
+
+.btn-toolbar .btn.removeButton {
+  height: auto;
+  padding: 4px 7px;
+  width: auto;
+}
+
+#version_label {
+  color: #999;
+  font-size: 13px;
+  position: absolute;
+  right: 15px;
+  top: 15px;
+}
