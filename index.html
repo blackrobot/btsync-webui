@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>BitTorrent Sync</title>
+	<script type="text/javascript" src="./jquery-1.8.3.js"></script> 
+	<script type="text/javascript" src="./jqueryFileTree.js"></script> 
+	<script type="text/javascript" src="./jquery.qrcode.min.js"></script>
+	<script type="text/javascript" src="./bootstrap.js"></script> 
+	<script type="text/javascript" src="./webui.js"></script> 
+
+	<link href="./bootstrap.css" rel="stylesheet" type="text/css" /> 
+	<link href="./jqueryFileTree.css" rel="stylesheet" type="text/css" /> 
+
+	<link rel="icon" type="image/png" href="icon.png" />
+
+	<style>
+	body { overflow-y: scroll;}
+	.odd { background-color: #d3dffc }
+	.removeButton 
+	{ 
+		width: 26px; 
+		height: 26px;
+		padding: 0px;
+	}
+	.scroll
+	{
+		height: 75px;
+		overflow: auto;
+		border: 1px solid;
+		border-color: lightgray;
+		margin-top: 10px;
+		border-radius: 5px;
+	}
+	.input-400 { width: 400px; }
+	.input-secret { width: 350px; }
+	.width-80 { width: 80px; }
+	.offset { margin-left: 18px; }
+	.offset-top { margin-top: 8px; }
+	.uparrow 
+	{
+		background-image: url("images/up.png"); 
+		width:12px; height: 12px;
+		display: inline-block;
+	}
+	.downarrow 
+	{
+		background-image: url("images/down.png"); 
+		width:12px; height: 12px;
+		display: inline-block;
+	}
+	.readonly
+	{
+		background-image: url("images/one_way.png"); 
+		width:16px; height: 16px;
+		display: inline-block;
+	}
+	.supernode 
+	{
+		background-image: url("images/supernode.png"); 
+		background-repeat: no-repeat; 
+		width:20px; height: 20px;
+	}
+	.local 
+	{
+		background-image: url("images/direct.png"); 
+		background-repeat: no-repeat; 
+		width:22px; height: 22px;
+	}
+	.block {
+	  text-align: center;
+	}
+	.centered {
+	  display: inline-block;
+	  vertical-align: middle;
+	  padding: 25px 15px;
+	 }
+	 .hcentered { text-align: center; }
+	img
+	{
+    	border: 0
+	}
+	</style>
+</head>
+
+<body onload="OnInit();">
+
+	<div class="container">		
+		<br>
+		<img src="images/logo.png"/>
+		<br><br>
+		<div>
+			<span id="version_label"></span>
+			<div class="pull-right">
+				<a href="#add-dialog" role="button" class="btn" data-toggle="modal">Add Folder</a>
+				<a id="settings-button" role="button" class="btn" data-toggle="modal">Preferences</a>
+			</div>
+		</div>
+		<br><br>
+		<table id="filetable" class="table table-bordered">
+			<thead>
+				<tr>
+					<th>Folder</th>
+					<th>Size</th>
+					<th>Connected devices and status</th>
+					<th style="width:170px">Sharing</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+			<tfoot>
+				<tr>
+					<td colspan="4">
+					<p id="totalspeed" class="pull-right" />
+				</td>
+				</tr>
+			</tfoot>
+		</table>
+	</div>
+
+	<div id="getsecret-dialog" style="width: 400px; display: block;" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h3 id="myModalLabel">Get secret or QR code</h3>
+		</div>
+		<div class="modal-body">	
+
+			<div id="getsecret-radio" class="offset offset-top form-inline hcentered" style="padding-bottom: 10px">
+				<label class="radio">
+				  <input type="radio" name="optionsRadios" id="optionsFull" value="option1" checked="checked">
+				  Full access
+				</label>
+				<label class="radio">
+				  <input type="radio" name="optionsRadios" id="optionsRO" value="option2">
+				  Read only
+				</label>
+			</div>
+
+			<input id="getsecret" class="input-secret" type="text" readonly />
+			<div class="hcentered" style="margin-top: 10px; padding-bottom: 10px;">
+				<span> Scan this QR code with your mobile device to connect sync folders </span>
+			</div>
+			<div id="secretqr" class="hcentered"></div>
+		</div>
+	</div>
+
+	<div id="license-dialog" style="width: 550px; display: block;" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">		
+		<div id="license" class="modal-header block" style="height: 70px">			         
+			<strong class="centered">
+				By using BitTorrent Sync, you agree to our <a href="http://www.bittorrent.com/legal/privacy">Privacy Policy</a> and <a href="http://www.bittorrent.com/legal/terms-of-use">Terms</a>.
+			</strong>
+		</div>
+		<div id="cancel" class="modal-header block">			         
+			<strong >
+			<span >BitTorrent Sync is terminated.
+				In order to use our software, you must agree to the Privacy Policy and Terms.
+			</span>
+			<br/>
+			<br/>
+			<p>Thank you!				
+			<br/>
+			BitTorrent Sync Team.
+			</p>
+			<strong>
+		</div>
+		<div id="license-button" class="modal-footer">
+			<button class="btn" aria-hidden="true" onclick="OnCancel()">Cancel</button>
+			<button class="btn btn-primary" data-dismiss="modal" onclick="OnAccept()">Agree</button>
+		</div>	
+	</div>
+
+	<div id="settings-dialog" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h3 id="myModalLabel">Settings</h3>
+		</div>
+		<div class="modal-body">		
+			<div class="form-horizontal">
+				<div class="control-group">
+					<label class="control-label" for="devicename">Device name</label>
+					<div class="controls"><input type="text" id="devicename"></div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="listeningport">Listening port</label>
+					<div class="controls"><input type="text" id="listeningport"></div>
+					<div class="controls"><label class="checkbox"><input id="portmapping" type="checkbox" /> Use UPnP port mapping</label></div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="dlrate">Download limit (kB/s)</label>
+					<div class="controls"><input type="text" id="dlrate"></div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="ulrate">Upload limit (kB/s)</label>
+					<div class="controls"><input type="text" id="ulrate"></div>
+				</div>
+			</div>			
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+			<button id="settings-ok" class="btn btn-primary">Save changes</button>
+		</div>
+	</div>
+
+	<div id="folder-pref-dialog" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h3 id="myModalLabel">Folder Preferences</h3>
+		</div>
+
+		<ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+	        <li class="active"><a href="#simple-pref" data-toggle="tab">General</a></li>
+	        <li><a href="#adv-pref" data-toggle="tab">Advanced</a></li>
+	    </ul>
+
+		<div class="modal-body">		
+			<div class="tab-content">
+				<div id="simple-pref" class="tab-pane active control-group offset">
+					<div class="controls">
+						<label class="checkbox"><input id="relay" type="checkbox" /> Use relay server when required</label>
+					</div>
+					<div class="controls">
+						<label class="checkbox"><input id="usetracker" type="checkbox" /> Use tracker server</label>
+					</div>
+					<div class="controls">
+						<label class="checkbox"><input id="searchlan" type="checkbox" /> Search LAN</label>
+					</div>
+					<div class="controls">
+						<label class="checkbox"><input id="searchdht" type="checkbox" /> Search DHT network</label>
+					</div>
+					<div class="controls">
+						<label class="checkbox"><input id="deletetotrash" type="checkbox" /> Delete files to Sync Trash</label>
+					</div>
+					<div class="controls">
+						<label class="checkbox"><input id="usehosts" type="checkbox" /> Use predefined hosts</label>
+					</div>
+					<div class="controls form-inline">
+						<input id="address" type="text"class="input-small" placeholder="Address"/>
+						<input id="port" type="number"class="input-small" min="0" placeholder="Port"/>
+						<button id="addhost" class="btn">Add</button>
+					</div>
+
+					<div class="control-group">					
+						<div class="controls scroll">
+							<ul id="hostlist" class="unstyled">
+							</ul>
+						</div>
+					</div>
+				</div>
+
+				<div id="adv-pref" class="tab-pane control-group offset">
+					<div id="readonlymessage" class="hidden">
+						<h4>Advanced Preferences are not avaliable with read only secret</h4>
+					</div>
+					<div id="advanced" class="control-group">	
+						<div class="controls">
+							<div id="secret-error" class="alert alert-error hide">
+								Invalid secret!
+							</div>
+							<span>Secret:</span>
+							<div class="form-inline">
+							  <input id="pref-secret" type="text" class="input-400">
+							  <a id="newsecret" class="btn" style="width:60px">New</a>
+							</div>	
+							<br/>
+							<span>Read only secret:</span>
+							<div class="form-inline">
+							  <input id="pref-rosecret" type="text" class="input-400" readonly>
+							</div>	
+
+							<br/>
+							<span>One-time secret:</span>
+							<div class="offset offset-top">
+								<label class="radio">
+								  <input type="radio" name="optionsRadios" id="optionsRadios1" value="option1" checked>
+								  Full access
+								</label>
+								<label class="radio">
+								  <input type="radio" name="optionsRadios" id="optionsRadios2" value="option2">
+								  Read only
+								</label>
+							</div>							
+							<div class="form-inline">
+							  	<input id="pref-onetimesecret" type="text" class="input-400" readonly>
+							  	<a id="generate-invite" class="btn">Generate</a>
+								<small style="color:grey">One-time secret should be used within 24 hours</small>
+							</div>						
+							<div class="form-inline">
+							  	<a id="btnconnect" class="btn offset-top">Connect mobile via QR code</a>
+							</div>	
+						</div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button data-dismiss="modal" class="btn btn-primary width-80">Ok</button>
+		</div>
+	</div>
+
+
+	<div id="add-dialog" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h3>Add folder</h3>
+		</div>
+
+		<div class="modal-body">
+			<table cellpadding=5>
+				<tr>
+					<td align="right">Secret</td><td><input id="dialog-secret" type="text" style="width:360px;margin:0px"/></td><td><button id="generate-secret" class="btn" style="margin:0px;">Generate</button></td>
+				</tr>
+				<tr>
+					<td align="right">Path</td><td colspan=2><input id="add-directory" type="text" style="width:360px"/></td>
+				</tr>
+			</table>
+
+			<div  id="add-error" class="alert alert-error hide"></div>
+			
+			<div style="height:200px; overflow:scroll">
+				<div id="filetree"></div>
+			</div>
+		</div>
+		
+		<div class="modal-footer">
+			<button class="btn width-80" data-dismiss="modal" aria-hidden="true">Cancel</button>
+			<button id="add-ok" class="btn btn-primary width-80">Add</button>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+    jQuery(document).ready(function ($) {
+        $('#tabs').tab();
+    });
+</script>   
+
+<div class="navbar navbar-fixed-bottom">
+	<div class="navbar-inner">
+        <div class="container" > 
+	<span class="navbar-text offset3">By using this application, you agree to our <a href="http://www.bittorrent.com/legal/privacy">Privacy Policy</a> and <a href="http://www.bittorrent.com/legal/terms-of-use">Terms</a>.</span>
+	</div>
+	</div>
+</div>
+
+</body>
+</html>
