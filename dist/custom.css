@@ -33,6 +33,10 @@ table table {
   font-size: 15px;
 }
 
+.btn-group a {
+  cursor: pointer;
+}
+
 .btn-toolbar .btn.removeButton {
   height: auto;
   padding: 4px 7px;
