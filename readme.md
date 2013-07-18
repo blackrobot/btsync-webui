@@ -19,7 +19,7 @@ $ cp ~/.btsync/webui.zip ~/.btsync/webui.zip.backup
 
 2. Create a zip of everything in the `dist` directory of this project:
 ```bash
-$ cd dist && zip ~/.btsync/webui.zip ./*
+$ cd dist && zip -r ~/.btsync/webui.zip ./*
 ```
 
 3. BitTorrent Sync will try to overwrite the new `webui.zip` on startup,
