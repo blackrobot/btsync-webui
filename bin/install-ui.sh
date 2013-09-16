@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BT_RESTART="$( which btsync-restart )"
+BT_LIB="/usr/lib/btsync-user"
 BT_DIR="${HOME}/.btsync"
 
 SLEEP=2
@@ -19,8 +19,13 @@ function warn {
   echo -e "$(tput setaf 3)$(tput bold)${1}$(tput sgr0)"
 }
 
+function bt_restart {
+  eval "${BT_LIB}/btsync-stopper"
+  eval "${BT_LIB}/btsync-starter"
+}
+
 info "Restarting BitTorrent Sync..."
-$BT_RESTART &&
+bt_restart &&
   info "Waiting ${SLEEP} seconds..." &&
   sleep $SLEEP &&
   warn "Backing up webui.zip to webui.backup.zip..." &&

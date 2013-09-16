@@ -7,6 +7,15 @@ function OnInit()
 		if (data.agreed)
 		{
 			Init();
+			utWebUI.iswebuiLanguageSet(function(data)
+			{
+				if (data.iswebuilanguageset == 0)
+				{
+					utWebUI.setwebuiLanguage();
+					utWebUI.setLang("en", setUserLangCallback);
+				}
+				setLang();
+			});
 		}
 		else
 		{
@@ -14,9 +23,52 @@ function OnInit()
 			  backdrop: 'static',
 			  keyboard: true
 			});
+			utWebUI.setwebuiLanguage();
+			setLang();
 		}
 	});
 }
+
+function setLang()
+{
+  // var langs = [ "ru","ja","zhCN","zhTW","de","en","esES","fr","it","ptBR","ptPT" ];
+  var langs = ["en"];
+	var newLang = "en";
+	utWebUI.getLang(function(data)
+	{
+		if (data.lang == "")
+		{
+			var userLang = navigator.language || navigator.userLanguage;
+			for(var e = 0; e < langs.length; ++e)
+			{
+				if (userLang == langs[e])
+				{
+					newLang = userLang;
+					break;
+				}
+			}
+		}
+		else
+		{
+			newLang = data.lang;
+		}
+
+		if (window.location.pathname.toLowerCase().indexOf("/gui/" + newLang.toLowerCase() + "/") != -1) {
+			$("#lang-select").val(newLang);
+			return;
+		}
+		
+		utWebUI.setLang(newLang, setUserLangCallback);
+	});
+
+}
+
+
+function setUserLangCallback(data)
+{
+	document.location.href = "/gui/"+data.lang+"/index.html";
+}
+
 
 function Init()
 {
@@ -87,15 +139,42 @@ function Init()
 
 	$("#settings-button").click(function() 
 	{
+	$("#password-error").hide();
 		getSettings();
+		utWebUI.getUserName(function(data)
+    	{
+        document.getElementById("username").value = decodeURIComponent(escape(data.username));
+    	});
 		$('#settings-dialog').modal();
 	});
 
 	$('#settings-ok').click(function() 
 	{
-
-		$('#settings-dialog').modal('hide');
-		setSettings();
+		if ($("#settings-tab").hasClass("active"))
+    	{
+      		$('#settings-dialog').modal('hide');
+      		setSettings();
+    	}
+	 	else if ($("#auth-tab").hasClass("active"))
+		{
+			var username = $("#username").val();
+			var newPassowrd = $("#newpassword").val();
+			var oldPassword = $("#oldpassword").val();
+		 
+			utWebUI.setCredentials(username, oldPassword, newPassowrd, function(data)
+		    {
+				if (data.result)
+				{
+					$("#password-error").hide();
+					$('#settings-dialog').modal('hide');
+				}
+				else
+				{
+					$("#password-error").show();
+				}
+			});
+		}
+		
 		return false; 
 	});
 
@@ -193,18 +272,28 @@ function Init()
 	$("#download_new").text("");
 	$("#download_new").attr("href", "");
 	$("#version_label").text( "Version " + currentVersion.ver );
-
 	if (osType == "linux")
 	{
 		checkVersion();
 	}
+	utWebUI.getLang(function(data)
+	{
+		if (data.lang == "")
+		{
+			$('#lang-select').val("en");
+		}
+		else
+		{
+			$("#lang-select").val(data.lang);
+		}
+	});
 }
 
 function addFolderCallback(data)
 {
 	if (data.error == 104)
 	{
-		if (confirm(data.message))
+		if (confirm(decodeURIComponent(escape(data.message))))
 		{
 			utWebUI.addForceSyncFolder(data.n, data.secret, addFolderCallback);
 			return;
@@ -214,7 +303,7 @@ function addFolderCallback(data)
 	if (data.error)
 	{
 		$("#add-error").removeClass("hide");
-		$("#add-error").text(data.message);
+		$("#add-error").text(decodeURIComponent(escape(data.message)));
 	}
 	else
 	{
@@ -234,13 +323,16 @@ function checkVersion()
 		{
 			$("#download_new").text("");
 			$("#download_new").attr("href", "");
-			$("#version_label").text( "Version " + currentVersion.ver + " ( up to date )" );
+			$("#version_label").text( "Version " + currentVersion.ver +
+						 " ( up to date )" );
 		}
 		else
 		{
 			newVersion = makeVersion(res.version.version);
-			$("#version_label").html( "Version " + currentVersion.ver 
-				+ " ( new version " + newVersion.ver + " is avaliable - <a href=" + "\"" + res.version.url + "\"" + ">download</a> )" );
+			$("#version_label").html( "Version " + currentVersion.ver +
+						 " ( new version "
+						 + newVersion.ver + "is avaliable"
+						 +"- <a href=" + "\"" + res.version.url + "\"" + ">download</a> )" );
 		}
 	});
 }
@@ -300,8 +392,17 @@ function setSettings()
 		query += "&" + elems[e] + "=" + (+(elem.type == "checkbox" ? elem.checked : elem.value));
 	}
 	query += "&devicename=" + encodeURIComponent(document.getElementById("devicename").value);
-
+	
 	utWebUI.setSettings(query, function(c){ });
+	var lang = $('#lang-select').val();
+	utWebUI.getLang(function(data)
+	{
+		if (data.lang != lang)
+		{
+			utWebUI.setLang(lang,setUserLangCallback);
+		}
+	});
+
 }
 
 function img_create(src, alt, title) {
@@ -312,6 +413,47 @@ function img_create(src, alt, title) {
     if (alt!=null) img.alt= alt;
     if (title!=null) img.title= title;
     return img;
+}
+
+function getSecret()
+{
+	var s = $(this).data("secret");
+	var r = $(this).data("rosecret");
+	var writable = $(this).data("iswritable");
+	var f = $(this).data("name");
+
+	var devicename = encodeURIComponent(document.getElementById("devicename").value);
+	if (writable)
+	{
+		$("#getsecret-radio").show()
+	}
+	else
+	{
+		$("#getsecret-radio").hide();
+	}
+
+	var splited = f.split("/");
+	var name = splited[splited.length - 1];
+
+	document.getElementById("optionsFull").checked = true;
+	$("#getsecret").val(s);
+	$("#secretqr").empty();
+	$("#secretqr").qrcode({width: 256, height: 256, text: "btsync://" + s + "?n=" + name });
+	$('#getsecret-dialog').modal();
+
+	$("#optionsFull").click(function()
+	{
+		$("#getsecret").val(s);
+		$("#secretqr").empty();
+		$("#secretqr").qrcode({width: 256, height: 256, text: "btsync://" + s + "?n=" + name });
+	});
+
+	$("#optionsRO").click(function()
+	{
+		$("#getsecret").val(r);
+		$("#secretqr").empty();
+		$("#secretqr").qrcode({width: 256, height: 256, text: "btsync://" + r + "?n=" + name });
+	});
 }
 
 function getFolders()
@@ -326,7 +468,7 @@ function getFolders()
 
 		var table = $("#filetable tbody");
 
-		$("#totalspeed").html(c.speed);
+		$("#totalspeed").html(decodeURIComponent(escape(c.speed)));
 
 		$("#filetable tbody tr").each(function()
 		{
@@ -338,7 +480,7 @@ function getFolders()
 				if (row.children('td').eq(nameIndex).text() == folderName)
 				{
 					row.data("secret", folder.secret);
-					row.children('td').eq(sizeIndex).text(folder.size);
+					row.children('td').eq(sizeIndex).text(decodeURIComponent(escape(folder.size)));
 					folders.splice(index, 1);
 
 					var peers = folder.peers;
@@ -371,11 +513,16 @@ function getFolders()
 			            var statusCell = rowStatus.insertCell(2);
 			            var stat = document.createElement("div");
 			            var statusText = peer.status;
-			            $(stat).html(statusText);
+			            $(stat).html(decodeURIComponent(escape(statusText)));
 			            statusCell.appendChild(stat);
 				    }
 				    row.children('td').eq(2).html(contable.outerHTML);
 
+					var secretButton = row.find(".showQRButton");
+					secretButton.data("secret", folder.secret);
+					secretButton.data("rosecret", folder.readonlysecret);
+					secretButton.data("iswritable", folder.iswritable);
+					secretButton.data("name", folder.name);
 
 					exists = true;
 					return false;
@@ -395,7 +542,7 @@ function getFolders()
 
 			var folderName = decodeURIComponent(escape(folders[index].name));
       /*
-			var removeButton = $("<a><img src='images/cross.png'/></a>").addClass("btn").addClass("removeButton");
+			var removeButton = $("<a><img src='../images/cross.png'/></a>").addClass("btn").addClass("removeButton");
       */
 			var removeButton = $([
         '<a class="btn removeButton btn-danger">',
@@ -419,55 +566,21 @@ function getFolders()
 			$(removeButton).click(removeFunction);
 
       /*
-			var secretButton = $("<a>Secret / QR</a>").addClass("btn");
+			var secretButton = $("<a>Secret / QR</a>").addClass("btn").addClass("showQRButton");
       */
       var secretButton = $([
         '<a class="btn btn-inverse">Secret ',
           '<i class="icon-qrcode icon-white"></i>',
         '</a>'
       ].join(''));
-			var secretFunction = (function(s, r, writable, f)
-			{
-				return function()
-				{
-					var devicename = encodeURIComponent(document.getElementById("devicename").value);
-					if (writable)
-					{
-						$("#getsecret-radio").show()
-					}
-					else
-					{
-						$("#getsecret-radio").hide();
-					}
-
-					var splited = f.split("/");
-					var name = splited[splited.length - 1];
-
-					document.getElementById("optionsFull").checked = true;
-					$("#getsecret").val(s);
-					$("#secretqr").empty();
-					$("#secretqr").qrcode({width: 256, height: 256, text: "btsync://" + s + "?n=" + name });
-					$('#getsecret-dialog').modal();
-
-					$("#optionsFull").click(function()
-					{
-						$("#getsecret").val(s);
-						$("#secretqr").empty();
-						$("#secretqr").qrcode({width: 256, height: 256, text: "btsync://" + s + "?n=" + name });
-					});
-
-					$("#optionsRO").click(function()
-					{
-						$("#getsecret").val(r);
-						$("#secretqr").empty();
-						$("#secretqr").qrcode({width: 256, height: 256, text: "btsync://" + r + "?n=" + name });
-					});
-				}
-			})(folder.secret, folder.readonlysecret, folder.iswritable, folder.name);
-			$(secretButton).click(secretFunction);
+			secretButton.data("secret", folder.secret);
+			secretButton.data("rosecret", folder.readonlysecret);
+			secretButton.data("iswritable", folder.iswritable);
+			secretButton.data("name", folder.name);
+			$(secretButton).click(getSecret);
 
       /*
-			var settingButton = $("<a><img src='images/pref.png' /></a>").addClass("btn").addClass("removeButton");
+			var settingButton = $("<a><img src='../images/pref.png' /></a>").addClass("btn").addClass("removeButton");
       */
       var settingButton = $([
         '<a class="btn removeButton btn-info">',
@@ -518,7 +631,7 @@ function getFolders()
 						$("#btnconnect").click(function()
 						{
 							$('#folder-pref-dialog').modal('hide');
-							secretFunction();
+							secretButton.click();
 						});
 					});
 				}
@@ -536,7 +649,7 @@ function getFolders()
 	            $(directCell).css("paddingTop", "12px").css("width", "20px");
 	            if (!peer.direct)
 	            {
-	            	directCell.appendChild(img_create("images/supernode.png"));
+	            	directCell.appendChild(img_create("../images/supernode.png"));
 	            }
 
 	            var nameCell = conrow.insertCell(1);
@@ -550,10 +663,17 @@ function getFolders()
 		    }
 		    $(contable).addClass("pull-right");
 
+        /*
+		    var centerDiv = $("<div style='text-align: center;'>").append(settingButton).append(removeButton).append($("</div>"));
+        */
+
 		    var readonly = "";// folder.secret[0] == "R" ? "<div class='readonly pull-right' />" : "";
 			row.append($("<td>" + folderName + readonly + "</td>")).
-			append($("<td>" + folder.size + "</td>")).
+			append($("<td>" + decodeURIComponent(escape(folder.size)) + "</td>")).
 			append($("<td>" + contable.outerHTML + "</td>")).
+      /*
+			append($("<td/>").append($("<div  class='btn-toolbar' style='margin: 0px;'/>").append(secretButton).append(centerDiv)));
+      */
 			append($("<td/>").append($("<div  class='btn-toolbar' style='margin: 0px;'/>").append(secretButton).append(settingButton).append(removeButton)));
 			row.data("secret", folder.secret);
 			table.append(row);
@@ -785,6 +905,14 @@ var utWebUI = {
 
 		this.request("action=removeknownhosts&name=" + name + "&secret=" + secret + "&index=" + index, f);
 	},
+	getLang: function(l)
+	{
+		this.request("action=getuserlang", l);
+	},
+	setLang: function(lang, l)
+	{
+		this.request("action=setuserlang&lang=" + lang, l);
+	},
 	updateSecret: function(n, s, newsecret, f)
 	{
 		var name = encodeURIComponent(n);
@@ -818,4 +946,22 @@ var utWebUI = {
 	{
 		this.request("action=license", f);
 	},
+	iswebuiLanguageSet: function(f)
+	{
+		this.request("action=iswebuilanguageset", f);
+	},
+	setwebuiLanguage: function(f)
+	{
+		this.request("action=setwebuilanguage");
+	},
+	getUserName: function(f) 
+  	{
+    		this.request("action=getusername", f);
+  	},
+  	setCredentials: function(name, oldPassword, newPassowrd, f) 
+  	{
+  	 	 this.request("action=setcred&username=" + name + "&newpwd=" + newPassowrd + "&oldpwd=" + oldPassword, f);
+  	},
+
 };
+
