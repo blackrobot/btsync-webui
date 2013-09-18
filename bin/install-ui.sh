@@ -3,8 +3,6 @@
 BT_LIB="/usr/lib/btsync-user"
 BT_DIR="${HOME}/.btsync"
 
-SLEEP=2
-
 function success {
   echo ""
   echo -e "$(tput setaf 2)$(tput bold)${1}$(tput sgr0)"
@@ -20,16 +18,40 @@ function warn {
 }
 
 function bt_restart {
-  eval "${BT_LIB}/btsync-stopper"
-  eval "${BT_LIB}/btsync-starter"
+  local starter="${BT_LIB}/btsync-starter"
+  local stopper="${BT_LIB}/btsync-stopper"
+
+  info "Stopping BitTorrent Sync..."
+  $stopper && warn "Waiting for BitTorrent Sync to fully shutdown..."
+
+  while pgrep btsync -U $(id -u) > /dev/null; do
+    printf " ."
+    sleep 1;
+  done
+
+  echo ""
+  info "Starting BitTorrent Sync..."
+  $starter > /dev/null 2>&1 &&
+    warn "Waiting for BitTorrent Sync to fully startup..."
+
+  while true; do
+    is_running=`pgrep -x btsync-agent -U $(id -u)`
+    if [ "${is_running:-null}" = null ]; then
+      printf " ."
+      sleep 1;
+    else
+      # It's up and running
+      break;
+    fi
+  done
+
+  echo ""
+  success "BitTorrent Sync started! :)"
 }
 
-info "Restarting BitTorrent Sync..."
 bt_restart &&
-  info "Waiting ${SLEEP} seconds..." &&
-  sleep $SLEEP &&
   warn "Backing up webui.zip to webui.backup.zip..." &&
   mv -f "${BT_DIR}/webui.zip" "${BT_DIR}/webui.backup.zip" &&
   info "Compiling new webui.zip and replacing original..."
-  cd ../dist/ && zip -r "${BT_DIR}/webui.zip" ./* &&
+  cd ../dist/ && zip -r "${BT_DIR}/webui.zip" ./* >/dev/null &&
   success "Finished!"
