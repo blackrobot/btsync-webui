@@ -3,11 +3,16 @@
 This is a custom interface for the Linux distribution of [BitTorrent
 Sync](http://labs.bittorrent.com/experiments/sync.html).
 
+# Screenshots
+
+![Home Screen](http://i.imgur.com/JonBmtb.png)
+![Open Dialog](http://i.imgur.com/UnL4I2E.png)
+
+# Setup
+
 **Ubuntu** users can install BitTorrent Sync from the `tuxpoldo/btsync` ppa.
 Instructions on installing BitTorrent Sync for Ubuntu can be found in
 [this post on the BitTorrent Sync forums](http://forum.bittorrent.com/topic/19560-debian-and-ubuntu-desktop-packages-for-bittorrent-sync/).
-
-# Setup
 
 *This assumes that your `storage_path` as defined in your `btsync.conf`
 file, is set to the path `~/.btsync/`.*
