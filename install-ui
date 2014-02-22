@@ -1,0 +1,56 @@
+#!/bin/bash
+
+set -e
+
+BT_LIB="/usr/lib/btsync-user"
+BT_DIR="${HOME}/.btsync"
+
+# Colors
+function out {
+  echo "$(tput setaf ${1})${2}$(tput sgr0)"
+}
+function success {
+  out 2 "$1"
+}
+function info {
+  out 3 "$1"
+}
+function progress {
+  printf "### "
+  sleep 1
+}
+
+# Execute the btsync stop script
+info "Stopping BitTorrent Sync"
+$BT_LIB/btsync-stopper
+
+# Loop until a btsync process does not exist for the current user
+while pgrep btsync -U $(id -u) > /dev/null; do
+  progress
+done
+echo
+
+# Start btsync again
+info "Starting BitTorrent Sync"
+$BT_LIB/btsync-starter > /dev/null 2>&1
+
+# Wait until a btsync process exists for this user
+while true; do
+  if [[ -z "$(pgrep -x btsync-agent -U $(id -u))" ]]; then
+    progress
+  else
+    break;
+  fi
+done
+echo
+
+# Backup the current webui archive
+info "Backing up webui.zip to webui.backup.zip"
+mv -f "${BT_DIR}/webui.zip" "${BT_DIR}/webui.backup.zip"
+
+# Create new archive and drop it in place
+info "Compiling new webui.zip and replacing original"
+cd ../dist/ && zip -r "${BT_DIR}/webui.zip" ./* >/dev/null
+
+# Hopefully it all worked
+success "Finished!"

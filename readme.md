@@ -17,9 +17,9 @@ Instructions on installing BitTorrent Sync for Ubuntu can be found in
 *This assumes that your `storage_path` as defined in your `btsync.conf`
 file, is set to the path `~/.btsync/`.*
 
-To install, just run the `bin/install-ui.sh` script:
+To install, just run the `install-ui` script:
 ```bash
-$ cd bin && ./install-ui.sh
+$ ./install-ui
 ```
 
 Here's the process that script goes through, with the commands to use if
