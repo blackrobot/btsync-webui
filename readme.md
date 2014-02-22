@@ -5,8 +5,8 @@ Sync](http://labs.bittorrent.com/experiments/sync.html).
 
 # Screenshots
 
-![Home Screen](http://i.imgur.com/JonBmtb.png)
-![Open Dialog](http://i.imgur.com/UnL4I2E.png)
+![Home Screen](https://i.imgur.com/JonBmtb.png)
+![Open Dialog](https://i.imgur.com/8sAdW5g.png)
 
 # Setup
 
