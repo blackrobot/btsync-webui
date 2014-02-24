@@ -5,6 +5,8 @@ set -e
 BT_LIB="/usr/lib/btsync-user"
 BT_DIR="${HOME}/.btsync"
 
+DIST_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/dist"
+
 # Colors
 function out {
   echo "$(tput setaf ${1})${2}$(tput sgr0)"
@@ -50,7 +52,8 @@ mv -f "${BT_DIR}/webui.zip" "${BT_DIR}/webui.backup.zip"
 
 # Create new archive and drop it in place
 info "Compiling new webui.zip and replacing original"
-cd ../dist/ && zip -r "${BT_DIR}/webui.zip" ./* >/dev/null
+cd "$DIST_PATH" && zip -r "${BT_DIR}/webui.zip" ./* >/dev/null
+cd -
 
 # Hopefully it all worked
 success "Finished!"
