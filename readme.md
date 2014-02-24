@@ -26,28 +26,31 @@ Here's the process that script goes through, with the commands to use if
 doing it manually:
 
 1. Restart `btsync-desktop`. Replacing the `webui.zip` has to occur
-before the first request is made to the web interface.
-```bash
-$ /usr/bin/btsync-restart
-# Or, manually
-$ pkill -u $(id -u) btsync && /path/to/btsync --config ~/btsync.conf
-```
+   before the first request is made to the web interface.
 
-2. Delete or backup the BitTorrent Sync `webui.zip` file:
-```bash
-$ cp ~/.btsync/webui.zip ~/.btsync/webui.zip.backup
-```
+   ```bash
+   $ /usr/bin/btsync-restart
+   # Or, manually
+   $ pkill -u $(id -u) btsync && /path/to/btsync --config ~/btsync.conf
+   ```
 
-3. Create a zip of everything in the `dist` directory of this project:
-```bash
-$ cd dist && zip -r ~/.btsync/webui.zip ./*
-```
+1. Delete or backup the BitTorrent Sync `webui.zip` file:
 
-4. The new web ui should be installed. Open a browser to check it out.
+   ```bash
+   $ cp ~/.btsync/webui.zip ~/.btsync/webui.zip.backup
+   ```
 
-You will have to run this every time you update bt-sync. Optionally,
-you can prevent the system from overwriting the `webui.zip` file after
-installing it with something like this:
+1. Create a zip of everything in the `dist` directory of this project:
+
+   ```bash
+   $ cd dist && zip -r ~/.btsync/webui.zip ./*
+   ```
+
+1. The new web ui should be installed. Open a browser to check it out.
+
+**Note:** You will have to run this every time you update BitTorrent Sync.
+Optionally, you can prevent the system from overwriting the `webui.zip` file
+after installing it with something like this:
 ```bash
 $ sudo chattr +ia ~/.btsync/webui.zip
 ```
